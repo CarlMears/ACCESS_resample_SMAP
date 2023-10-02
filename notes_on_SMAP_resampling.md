@@ -1,5 +1,7 @@
-notes_on_SMAP_resampling.md
+# Notes SMAP resampling
 
+We begin with the publicly available L2C SMAP files.  All processing of SMAP is done in python.  We choose to do this to make the process transparent.  The SMAP data volume is not so large, so the speed concerns with python are not too bad.
+ 
 ## Some assumptions that seem to be true:
 - The spatial pattern for each SMAP L2C files is the same, but translated in the E-W direction to account for different equator crossing longitudes,
 - The footprint geometry, e.g. the azimuth angle of the tilted ellipses is more or less determined by the location in the translated lat/lon grid.
@@ -18,8 +20,12 @@ For each valid location and look we store:
 - The longitude and latitude limits in the L2C source indexing scheme.
 - The weights
 
-Not sure if this will be in one big file with a lot of NaNs in most locations that will compress away, or in separate files, or maybe separate files for each longitude bin.
+The weights are stored in separate files for each output latitude. The latitude index, ilat, goes from 20 (-85.0) to 700 (+85.0).
+
+
 
 I think maybe 5% of the possible locations are valid, so maybe 50,000 locations, with an average of 800 bytes.  This is 40 MB, so not too big.
+
+
 
 

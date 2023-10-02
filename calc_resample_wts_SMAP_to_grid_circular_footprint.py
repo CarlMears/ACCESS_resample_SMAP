@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     verbose = True
     smoothing_factor = 0.000001
+    smoothing_factor_near_pole = 0.00001
     delta_ilat = 5
     output_path = Path('M:/job_access/resampling/SMAP/weights_for_L2C_files_v3')
 
@@ -107,11 +108,11 @@ if __name__ == "__main__":
     input_lons = np.arange(0.125-15.0,359.99+15.0,0.25)
     input_lat_grid,input_lon_grid = np.meshgrid(input_lats,input_lons,indexing='ij')
 
-    g_ordered_dict_0 = OrderedDict()
-    g_ordered_dict_1 = OrderedDict()
-    g_ordered_dict = [g_ordered_dict_0,g_ordered_dict_1]
-  
-    for itar_lat in range(695,701):
+    for itar_lat in range(20,701):
+        g_ordered_dict_0 = OrderedDict()
+        g_ordered_dict_1 = OrderedDict()
+        g_ordered_dict = [g_ordered_dict_0,g_ordered_dict_1]
+
         target_lat = -90.0 + itar_lat/4.0
         delta_ilon = int(np.round(delta_ilat/np.cos(np.deg2rad(target_lat))))
         if delta_ilon > 30:
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         lon_indices_array = np.full((num_output_lat,num_y,num_x),-999,dtype=np.int32)
         num_valid_locations = 0
 
+        #for itar_lon in range(0,1440):
         for itar_lon in range(0,1440):
 
             target_lon = itar_lon/4.0
@@ -140,14 +142,14 @@ if __name__ == "__main__":
 
             if np.isfinite(mean_eaa) == False:
                 continue
-            print(f'itar_lat: {itar_lat}, itar_lon: {itar_lon}, latitude_center: {latitude_center:.3f}, longitude_center: {longitude_center:.3f}')
+            #print(f'itar_lat: {itar_lat}, itar_lon: {itar_lon}, latitude_center: {latitude_center:.3f}, longitude_center: {longitude_center:.3f}')
 
 
             range_x = np.arange(-delta_ilon+itar_lon+60,delta_ilon+itar_lon+60)
-            print(range_x)
+            #print(range_x)
 
             range_y = np.arange(-delta_ilat+itar_lat,delta_ilat+itar_lat)
-            print(range_y)
+            #print(range_y)
 
             x_indices,y_indices = np.meshgrid(range_x,range_y)
             lat_indices_array[num_valid_locations,:,:] = y_indices
@@ -159,10 +161,9 @@ if __name__ == "__main__":
                 near_lons = input_lon_grid[y_indices,x_indices]
                 near_lats = input_lat_grid[y_indices,x_indices]
                 
-
                 if np.sum(np.isfinite(near_eaa)) < near_eaa.size:
-                    if verbose:
-                        print('NaNs in near_eaa')  
+                    # if verbose:
+                    #     print('NaNs in near_eaa')  
                     continue
         
                 grid = LocalEarthGrid(center_lon = target_lon,center_lat = target_lat,
@@ -237,9 +238,12 @@ if __name__ == "__main__":
                 u = np.ones(g_array.shape[0],dtype=np.float64)
 
                 # add a smoothing factor to the diagonal elements
-                # this is the capital V in the equations
+                # this is the capital "V" in the equations
                 eye = np.eye(g_array.shape[0],dtype=np.float64)
-                g_array = g_array + smoothing_factor*eye
+                if itar_lat < 60 or itar_lat > 660:
+                    g_array = g_array + smoothing_factor_near_pole*eye
+                else:
+                    g_array = g_array + smoothing_factor*eye
 
                 g_inv = np.linalg.inv(g_array)
 
@@ -257,11 +261,25 @@ if __name__ == "__main__":
                 if num_valid_locations == 0:
                     plt.imshow(wts)
 
+                if np.std(wts) > 0.012:
+                    print(f'itar_lat: {itar_lat}, itar_lon: {itar_lon}, look: {look}, num_valid_locations: {num_valid_locations},total_wts: {np.sum(wts)}')
+                    print(f'std.dev. wts = {np.std(wts)}')
+                    print
+
+                s = wts.shape
+                edges = np.array([wts[0,0],wts[0,s[1]-1],wts[s[0]-1,0],wts[s[0]-1,s[1]-1]])
+                mean_on_edge = np.mean(edges)
+                if np.abs(wts[int(s[0]/2),int(s[1]/2)]/mean_on_edge) < 500.0:
+                    print(f'itar_lat: {itar_lat}, itar_lon: {itar_lon}, look: {look}, num_valid_locations: {num_valid_locations},total_wts: {np.sum(wts)}')
+                    print(f'center/edge {wts[int(s[0]/2),int(s[1]/2)]/wts[0,0]}')
+                    print
                 # write the weights to a file
                 itar_lat_array[num_valid_locations] = itar_lat
                 itar_lon_array[num_valid_locations] = itar_lon
                 wts_array[num_valid_locations,look,:,:] = wts
                 print(f'itar_lat: {itar_lat}, itar_lon: {itar_lon}, look: {look}, num_valid_locations: {num_valid_locations},total_wts: {np.sum(wts)}')
+                print(f'std.dev. wts = {np.std(wts)}')
+                print(f'center/edge {wts[int(s[0]/2),int(s[1]/2)]/wts[0,0]}')
                 stored_valid_wts = True
                 print
             if stored_valid_wts:
