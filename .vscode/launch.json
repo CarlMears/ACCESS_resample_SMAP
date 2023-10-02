@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Resample SMAP Orbits NP",
+            "type": "python",
+            "request": "launch",
+            "program": "M:/job_access/python/SMAP/resample_SMAP_L2C_files.NP.py",
+            "console": "integratedTerminal",
+            "args": ["--smap_wt_root", "M:/job_access/resampling/SMAP/weights_for_L2C_files_v2_NP",
+                     "--output_root", "B:/_access_temp/smap_tb_orbits",
+                     "--start_date", "2019-01-01",
+                     "--end_date", "2019-12-31",
+                     "--verbose"]
+        },
+        {
+            "name": "Python: Resample SMAP Orbits GL",
+            "type": "python",
+            "request": "launch",
+            "program": "M:/job_access/python/SMAP/resample_SMAP_L2C_files.py",
+            "console": "integratedTerminal",
+            "args": ["--smap_wt_root", "M:/job_access/resampling/SMAP/weights_for_L2C_files_v3",
+                     "--output_root", "B:/_access_temp/smap_tb_orbits",
+                     "--start_date", "2016-01-01",
+                     "--end_date", "2016-01-02",
+                     "--verbose"]
+        }
+    ]
+
+}

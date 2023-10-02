@@ -1,0 +1,15 @@
+[project]
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 95
+
+[tool.black]
+line-length = 95
+
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
